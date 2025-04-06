@@ -1,1 +1,2 @@
-# Fitness-Tracker-App
+Gym Fitness App
+This Gym Workout Tracker is a fullstack fitness app. It helps users stay on track with their workouts. Users can register and log in using Firebase Authentication. They can view a list of available exercises. They can log their daily workouts by adding sets, reps, weight, and date. Users can also update or delete any workout entry. The app shows simple progress analytics like total workouts and max weight lifted. It is made to be easy to use and helpful for anyone who wants to stay fit.
