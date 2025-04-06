@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "../services/api";
+import { addWorkout } from "../services/api";
 
 const LogWorkout = () => {
   const [workout, setWorkout] = useState({ exercise: "", reps: "", sets: "", weight: "", date: "" });
@@ -10,7 +10,7 @@ const LogWorkout = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post("/workouts", workout);
+    await addWorkout(workout);
     alert("Workout logged!");
   };
 
@@ -20,7 +20,9 @@ const LogWorkout = () => {
       {["exercise", "reps", "sets", "weight", "date"].map((field) => (
         <input key={field} name={field} placeholder={field} className="block w-full mb-4 border p-2" onChange={handleChange} />
       ))}
-      <button type="submit" className="w-full bg-red-600 text-white py-2 rounded">Submit</button>
+      <button type="submit" className="w-full bg-red-600 text-white py-2 rounded">
+        Submit
+      </button>
     </form>
   );
 };

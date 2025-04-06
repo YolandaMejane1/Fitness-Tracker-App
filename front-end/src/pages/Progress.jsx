@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import axios from "../services/api";
+import { getProgress } from "../services/api";
 
 const Progress = () => {
   const [summary, setSummary] = useState({});
 
   useEffect(() => {
-    axios.get("/progress").then((res) => setSummary(res.data));
+    getProgress().then((res) => setSummary(res));
   }, []);
 
   return (

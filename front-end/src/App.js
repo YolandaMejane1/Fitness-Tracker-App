@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import LogWorkout from './pages/LogWorkout';
+import Dashboard from './pages/Dashboard';
 import EditWorkout from './pages/EditWorkout';
 import Progress from './pages/Progress';
 import { AuthProvider } from './context/AuthContext';
@@ -20,8 +21,9 @@ const App = () => {
             <Route path="/home" element={<Home />} /> 
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/log-workout" element={<LogWorkout />} />
-            <Route path="/edit-workout" element={<EditWorkout />} />
+            <Route path="/logworkout" element={<LogWorkout />} />
+            <Route path="/dashboard" element={<Dashboard />} /> 
+            <Route path="/editworkout" element={<EditWorkout />} />
             <Route path="/progress" element={<Progress />} />
           </Routes>
         </div>
