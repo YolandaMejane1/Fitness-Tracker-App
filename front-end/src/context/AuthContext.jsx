@@ -1,6 +1,4 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase';
 
 const AuthContext = createContext();
 
@@ -8,11 +6,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
+   
+    const mockUser = { email: 'testuser@example.com' }; 
+    setUser(mockUser);
 
-    return unsubscribe;
+   
+    return () => {};
   }, []);
 
   return (
