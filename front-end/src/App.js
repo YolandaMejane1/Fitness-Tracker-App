@@ -15,7 +15,7 @@ const App = () => {
     <AuthProvider>
       <Router>
         <Navbar />
-        <div className="container mx-auto mt-4">
+        <div className="w-screen h-screen">
           <Routes>
             <Route path="/" element={<Home />} /> 
             <Route path="/home" element={<Home />} /> 

@@ -15,7 +15,7 @@ const LogWorkout = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 max-w-md mx-auto mt-10 text-red-600 font-light">
+    <form onSubmit={handleSubmit} className="p-6 max-w-md pt-24 mx-auto text-red-600 font-light">
       <h2 className="text-2xl mb-4 text-center">Log Workout</h2>
       {["exercise", "reps", "sets", "weight", "date"].map((field) => (
         <input key={field} name={field} placeholder={field} className="block w-full mb-4 border p-2" onChange={handleChange} />

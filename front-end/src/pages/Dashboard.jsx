@@ -9,7 +9,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="text-center text-red-700">
+    <div className="text-center text-red-700 pt-20">
       <h1 className="text-3xl font-bold mb-6">Welcome to Your Dashboard</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

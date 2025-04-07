@@ -4,9 +4,9 @@ import AuthContext from "../context/AuthContext";
 
 const menus = [
   { name: "Home", path: "/home" },
-  { name: "Dashboard", path: "/dashboard" },
-  { name: "Log Workout", path: "/logworkout" },
-  { name: "Progress", path: "/progress" },
+  { name: "Stats", path: "/dashboard" },
+  { name: "Log a Workout", path: "/logworkout" },
+  { name: "Exercise Types", path: "/progress" },
 ];
 
 const Navbar = () => {
@@ -19,21 +19,25 @@ const Navbar = () => {
   };
 
   return (
-    <header className="fixed left-0 right-0 z-50 bg-red-600 bg-opacity-95 py-4">
+    <header className="fixed left-0 right-0 z-50 bg-red-800 bg-opacity-95 py-4">
       <div className="flex justify-between items-center px-4 max-w-7xl mx-auto">
-        <Link
-          to="/home"
-          className="text-white font-bold text-lg uppercase tracking-wide"
-        >
-          Fitness Tracker
-        </Link>
+      <Link
+  to="/home"
+  className="text-white font-bold text-lg uppercase tracking-wide"
+>
+  Fitness{" "}
+  <span className="text-red-800 border bg-white border-white px-1">
+    Tracker
+  </span>
+</Link>
+
 
         <div className="sm:hidden">
           <button onClick={() => setToggleMenu(!toggleMenu)}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 246.42 246.04"
-              className="fill-white w-8 h-8"
+              className="fill-white w-8 h-8 text-white"
             >
               <rect x="0.79" y="30.22" width="245.63" height="23.36" rx="11.68" />
               <rect x="0.39" y="111.32" width="245.63" height="23.36" rx="11.68" />
@@ -47,8 +51,8 @@ const Navbar = () => {
             <Link
               key={i}
               to={menu.path}
-              className={`text-white text-sm font-medium uppercase hover:text-yellow-300 px-3 py-2 rounded-xl ${
-                location.pathname === menu.path ? "bg-white text-red-600" : ""
+              className={`text-white text-sm font-medium uppercase hover:text-black px-3 py-2 rounded-3xl ${
+                location.pathname === menu.path ? "bg-white text-red-800" : ""
               }`}
             >
               {menu.name}
@@ -73,7 +77,7 @@ const Navbar = () => {
       </div>
 
       {toggleMenu && (
-        <div className="sm:hidden bg-red-700 text-white mt-2 px-4 pb-4 rounded-b-xl space-y-3">
+        <div className="sm:hidden bg-red-800 text-white mt-2 px-4 pb-4 rounded-b-xl space-y-3">
           {menus.map((menu, i) => (
             <Link
               key={i}
