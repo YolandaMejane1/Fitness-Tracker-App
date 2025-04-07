@@ -24,7 +24,7 @@ const Home = () => {
   </div>
 
   <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center z-10 px-4">
-    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold drop-shadow-md">Fitness Journey</h1>
+    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold drop-shadow-md">Start Your Fitness Journey</h1>
     <p className="mt-4 text-lg md:text-xl lg:text-2xl font-medium drop-shadow-sm">
       Log workouts, stay consistent, and smash your goals.
     </p>

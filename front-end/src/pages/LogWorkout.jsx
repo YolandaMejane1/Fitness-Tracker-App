@@ -1,29 +1,94 @@
-import React, { useState } from "react";
-import { addWorkout } from "../services/api";
+import { gql, useMutation } from '@apollo/client';
+
+const ADD_WORKOUT = gql`
+  mutation AddWorkout($exercise: String!, $reps: String!, $date: String!) {
+    addWorkout(exercise: $exercise, reps: $reps, date: $date) {
+      id
+      exercise
+      reps
+      date
+    }
+  }
+`;
 
 const LogWorkout = () => {
-  const [workout, setWorkout] = useState({ exercise: "", reps: "", sets: "", weight: "", date: "" });
-
-  const handleChange = (e) => {
-    setWorkout({ ...workout, [e.target.name]: e.target.value });
-  };
+  const [addWorkout] = useMutation(ADD_WORKOUT);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await addWorkout(workout);
-    alert("Workout logged!");
+    const { exercise, reps, date } = e.target.elements;
+
+    try {
+      await addWorkout({
+        variables: {
+          exercise: exercise.value,
+          reps: reps.value,
+          date: date.value,
+        },
+      });
+      
+      e.target.reset();
+    } catch (error) {
+      console.error('Error adding workout:', error);
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 max-w-md pt-24 mx-auto text-red-600 font-light">
-      <h2 className="text-2xl mb-4 text-center">Log Workout</h2>
-      {["exercise", "reps", "sets", "weight", "date"].map((field) => (
-        <input key={field} name={field} placeholder={field} className="block w-full mb-4 border p-2" onChange={handleChange} />
-      ))}
-      <button type="submit" className="w-full bg-red-600 text-white py-2 rounded">
-        Submit
-      </button>
-    </form>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md"
+      >
+        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">
+          Log Your Workout
+        </h2>
+        
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="exercise">
+            Exercise
+          </label>
+          <input
+            name="exercise"
+            type="text"
+            placeholder="Enter exercise"
+            required
+            className="w-full p-3 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="reps">
+            Reps
+          </label>
+          <input
+            name="reps"
+            type="text"
+            placeholder="Enter reps"
+            required
+            className="w-full p-3 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="date">
+            Date
+          </label>
+          <input
+            name="date"
+            type="date"
+            required
+            className="w-full p-3 mt-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="w-full p-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Log Workout
+        </button>
+      </form>
+    </div>
   );
 };
 

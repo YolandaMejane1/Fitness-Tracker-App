@@ -1,12 +1,23 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useQuery, gql } from '@apollo/client';
+
+const GET_WORKOUTS = gql`
+  query GetWorkouts {
+    workouts {
+      id
+      date
+      exercise
+      reps
+    }
+  }
+`;
 
 const Dashboard = () => {
-  const recentWorkouts = [
-    { id: 1, date: '2025-04-06', exercise: 'Push-Ups', reps: '3 sets of 15' },
-    { id: 2, date: '2025-04-05', exercise: 'Squats', reps: '3 sets of 20' },
-    { id: 3, date: '2025-04-04', exercise: 'Plank', reps: '3 sets of 60s' },
-  ];
+  const { loading, error, data } = useQuery(GET_WORKOUTS);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <div className="text-center text-red-700 pt-20">
@@ -15,15 +26,19 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl shadow-md p-6 border">
           <h2 className="text-xl font-semibold mb-4">Recent Workouts</h2>
-          <ul>
-            {recentWorkouts.map((workout) => (
-              <li key={workout.id} className="mb-2 border-b pb-2">
-                <p className="font-medium">{workout.exercise}</p>
-                <p>{workout.reps}</p>
-                <p className="text-sm text-gray-500">{workout.date}</p>
-              </li>
-            ))}
-          </ul>
+          {data.workouts.length === 0 ? (
+            <p>No workouts available</p>
+          ) : (
+            <ul>
+              {data.workouts.map((workout) => (
+                <li key={workout.id} className="mb-2 border-b pb-2">
+                  <p className="font-medium">{workout.exercise}</p>
+                  <p>{workout.reps} Reps</p>
+                  <p className="text-sm text-gray-500">{workout.date}</p>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="bg-white rounded-2xl shadow-md p-6 border">
