@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { createWorkout } from '../api/workoutApi';
 
 const exercises = [
   { name: 'Push-Up', target: 'Chest, Triceps, Shoulders' },
@@ -22,7 +23,6 @@ const exercises = [
 
 const LogWorkout = () => {
   const [error, setError] = useState('');
-  const [exerciseName, setExerciseName] = useState('');
   const [selectedExercise, setSelectedExercise] = useState('');
   const location = useLocation();
 
@@ -31,32 +31,41 @@ const LogWorkout = () => {
     const exercise = queryParams.get('exercise');
     if (exercise) {
       setSelectedExercise(exercise);
-      setExerciseName(exercise);
     }
   }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { reps, date } = e.target.elements;
+    const { reps, sets, load, date } = e.target.elements;
+
+    if (reps.value < 0 || sets.value < 0 || load.value < 0) {
+      setError("Reps, Sets, and Weight cannot be negative.");
+      return;
+    }
 
     const workoutData = {
-      exercise: selectedExercise,
-      reps: reps.value,
+      exercise: selectedExercise,  
+      reps: Number(reps.value),
+      sets: Number(sets.value),
+      weight: Number(load.value),  
       date: date.value,
     };
 
     try {
-      console.log('Workout logged:', workoutData);
+      const savedWorkout = await createWorkout(workoutData);
+      console.log('Workout saved:', savedWorkout);
       e.target.reset();
       setSelectedExercise('');
+      setError('');
     } catch (error) {
+      console.error(error);
       setError('Error adding workout: ' + error.message);
     }
   };
 
   return (
     <div
-      className="flex items-center justify-center min-h-screen bg-cover bg-center relative"
+      className="flex items-center justify-center pt-20 h-screen sm:h-[70%] w-screen bg-cover bg-center relative"
       style={{
         backgroundImage: "url('https://images.pexels.com/photos/4162491/pexels-photo-4162491.jpeg?auto=compress&cs=tinysrgb&w=1600')",
       }}
@@ -65,7 +74,7 @@ const LogWorkout = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 backdrop-blur-lg bg-white bg-opacity-5 p-8 rounded-2xl shadow-lg border border-red-900 w-full max-w-md"
+        className="relative z-10  bg-black bg-opacity-50 p-8 rounded-2xl shadow-lg border border-red-900 w-full max-w-md"
       >
         <h2 className="text-2xl font-semibold text-center mb-6 text-white">
           Log Your Workout
@@ -99,8 +108,37 @@ const LogWorkout = () => {
           </label>
           <input
             name="reps"
-            type="text"
+            type="number"
             placeholder="Enter reps"
+            min="0"
+            required
+            className="w-full p-3 mt-1 bg-white bg-opacity-20 text-white border border-white rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 placeholder-white"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-white" htmlFor="sets">
+            Sets
+          </label>
+          <input
+            name="sets"
+            type="number"
+            placeholder="Enter sets"
+            min="0"
+            required
+            className="w-full p-3 mt-1 bg-white bg-opacity-20 text-white border border-white rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 placeholder-white"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-white" htmlFor="load">
+            Weight (kg)
+          </label>
+          <input
+            name="load"
+            type="number"
+            placeholder="Enter weight in kg"
+            min="0"
             required
             className="w-full p-3 mt-1 bg-white bg-opacity-20 text-white border border-white rounded-md focus:outline-none focus:ring-2 focus:ring-red-800 placeholder-white"
           />

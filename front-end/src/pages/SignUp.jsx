@@ -41,7 +41,7 @@ const SignUp = () => {
           }}
         >
           <div className="absolute inset-0 bg-black/60 z-0" />
-          <div className="backdrop-blur  bg-black opacity-80 p-8 rounded-2xl max-w-sm w-full text-center border border-red-800 text-white shadow-2xl">
+          <div className="backdrop-blur  bg-black opacity-80 p-8 rounded-2xl max-w-sm w-[70%] sm:w-[50%] hover:text-center border border-red-800 text-white shadow-2xl">
             <h2 className="text-2xl mb-4 font-semibold">Sign Up</h2>
             {error && <p className="text-red-300 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
@@ -74,7 +74,7 @@ const SignUp = () => {
               />
               <button
                 type="submit"
-                className="w-full bg-red-700 hover:bg-red-800 text-white py-2 rounded font-semibold"
+                className="w-full bg-red-800 hover:bg-red-900 text-white py-2 rounded font-semibold"
               >
                 Sign Up
               </button>
@@ -82,7 +82,7 @@ const SignUp = () => {
 
             <button
               onClick={() => setIsModalOpen(false)}
-              className="mt-4 text-white hover:underline"
+              className="mt-4 text-white hover:underline ml-36"
             >
               Close
             </button>

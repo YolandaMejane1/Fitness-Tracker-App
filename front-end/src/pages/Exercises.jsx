@@ -114,7 +114,7 @@ const Exercises = () => {
         backgroundImage: "url('https://images.unsplash.com/photo-1667781838690-5f32ea0ccea6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
       }}
     >
-      <div className="absolute inset-0 bg-black opacity-50"></div>
+      <div className="absolute inset-0 bg-black opacity-80"></div>
       <div className="pt-24 px-4 max-w-7xl mx-auto relative z-10">
         <h2 className="text-4xl font-bold text-center mb-10 text-white">Exercises For You</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

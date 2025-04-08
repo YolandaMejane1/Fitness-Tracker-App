@@ -1,27 +1,22 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
 const EditWorkout = () => {
   const [workouts, setWorkouts] = useState([]);
 
   useEffect(() => {
-    setWorkouts([
-      {
-        id: 1,
-        exercise: "Squat",
-        reps: "10",
-        sets: "3",
-        weight: "80",
-        date: "2025-04-05",
-      },
-      {
-        id: 2,
-        exercise: "Bench Press",
-        reps: "8",
-        sets: "4",
-        weight: "60",
-        date: "2025-04-06",
-      },
-    ]);
+    const fetchWorkouts = async () => {
+      try {
+        const response = await axios.get("http://localhost:5002/api/workouts");
+        setWorkouts(response.data);
+      } catch (error) {
+        console.error("Error fetching workouts:", error.message);
+      }
+    };
+
+    fetchWorkouts();
   }, []);
 
   const handleChange = (index, field, value) => {
@@ -30,56 +25,106 @@ const EditWorkout = () => {
     setWorkouts(updated);
   };
 
-  const handleUpdate = (e, id) => {
+  const handleUpdate = async (e, workoutId) => {
     e.preventDefault();
-    alert(`Workout ${id} updated!`);
+
+    const updatedWorkout = workouts.find((workout) => workout._id === workoutId);
+
+    updatedWorkout.reps = Number(updatedWorkout.reps);
+    updatedWorkout.sets = Number(updatedWorkout.sets);
+    updatedWorkout.weight = Number(updatedWorkout.weight);
+
+    try {
+      await axios.put(`http://localhost:5002/api/workouts/${workoutId}`, updatedWorkout);
+      alert(`Workout ${workoutId} updated successfully!`);
+
+      const response = await axios.get("http://localhost:5002/api/workouts");
+      setWorkouts(response.data);
+    } catch (error) {
+      console.error("Error updating workout:", error.message);
+      alert("Error updating workout. Please try again.");
+    }
+  };
+
+  const handleDelete = async (workoutId) => {
+    try {
+      await axios.delete(`http://localhost:5002/api/workouts/${workoutId}`);
+      setWorkouts(workouts.filter((workout) => workout._id !== workoutId));
+      alert(`Workout ${workoutId} deleted successfully!`);
+    } catch (error) {
+      console.error("Error deleting workout:", error.message);
+      alert("Error deleting workout. Please try again.");
+    }
   };
 
   return (
-    <div className="w-full max-w-3xl pt-20 px-4 sm:px-8 md:px-16 lg:px-20 text-red-700 mx-auto">
+    <div
+      className="w-screen h-screen pt-20 px-4 sm:px-8 md:px-16 lg:px-20 text-red-800 bg-white"
+    >
       <h2 className="text-3xl font-bold text-center mb-8">Edit Past Workouts</h2>
       {workouts.length === 0 ? (
         <p className="text-center">No workouts to edit.</p>
       ) : (
-        workouts.map((workout, index) => (
-          <form
-            key={workout.id}
-            onSubmit={(e) => handleUpdate(e, workout.id)}
-            className="mb-8 border border-red-300 rounded-xl p-6 shadow-md bg-white"
-          >
-            <h3 className="text-lg font-semibold mb-4">
-              Workout #{workout.id}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
-              {["exercise", "reps", "weight", "date"].map((field) => (
-                <div key={field} className="flex flex-col">
-                  <label className="mb-1 capitalize text-sm font-medium text-gray-600">
-                    {field}
-                  </label>
-                  <input
-                    name={field}
-                    value={workout[field]}
-                    placeholder={field}
-                    type={field === "date" ? "date" : "text"}
-                    onChange={(e) =>
-                      handleChange(index, field, e.target.value)
-                    }
-                    className="p-2 border rounded"
-                  />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {workouts
+            .slice()
+            .reverse() 
+            .map((workout, index) => (
+              <form
+                key={workout._id}
+                onSubmit={(e) => handleUpdate(e, workout._id)}
+                className="mb-8 border border-red-800 rounded-xl p-6 shadow-md bg-black bg-opacity-90 text-white sm:w-11/12 sm:mx-auto md:w-5/6 lg:w-full relative"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleDelete(workout._id)}
+                  className="absolute bottom-8 right-5 text-white text-xl"
+                >
+                  <FontAwesomeIcon icon={faTrashAlt} />
+                </button>
+
+                <h3 className="text-lg font-semibold mb-4">Workout #{index + 1}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+                  {["exercise", "reps", "sets", "weight"].map((field) => (
+                    <div key={field} className="flex flex-col">
+                      <label className="mb-1 capitalize text-sm font-medium text-gray-100">
+                        {field}
+                      </label>
+                      <input
+                        name={field}
+                        value={workout[field]}
+                        placeholder={field}
+                        type={field === "date" ? "date" : "text"}
+                        onChange={(e) => handleChange(index, field, e.target.value)}
+                        className="p-2 border rounded bg-white text-black bg-opacity-70"
+                      />
+                    </div>
+                  ))}
+                  <div key="date" className="flex flex-col sm:col-span-2">
+                    <label className="mb-1 capitalize text-sm font-medium text-gray-300">
+                      Date
+                    </label>
+                    <input
+                      name="date"
+                      value={workout.date}
+                      onChange={(e) => handleChange(index, "date", e.target.value)}
+                      type="date"
+                      className="p-2 border rounded w-full bg-white text-black bg-opacity-70"
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
-            <p className="mt-1 text-sm text-gray-600">
-              * Weight in <strong>kgs</strong>
-            </p>
-            <button
-              type="submit"
-              className="mt-4 bg-red-800 text-white py-2 px-6 rounded hover:bg-red-900"
-            >
-              Update Workout
-            </button>
-          </form>
-        ))
+                <p className="mt-1 text-sm text-gray-300">
+                  * Weight in <strong>kgs</strong>
+                </p>
+                <button
+                  type="submit"
+                  className="mt-4 bg-red-800 text-white py-2 px-6 rounded hover:bg-red-900"
+                >
+                  Update Workout
+                </button>
+              </form>
+            ))}
+        </div>
       )}
     </div>
   );
