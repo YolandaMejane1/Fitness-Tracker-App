@@ -1,52 +1,87 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { getWorkouts, updateWorkout } from "../services/api";
 
 const EditWorkout = () => {
-  const [workout, setWorkout] = useState({});
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const [workouts, setWorkouts] = useState([]);
 
   useEffect(() => {
-    const fetchWorkout = async () => {
-      const data = await getWorkouts(); 
-      const selected = data.find((w) => w._id === id || w.id === id);
-      setWorkout(selected || {});
-    };
-    fetchWorkout();
-  }, [id]);
+    setWorkouts([
+      {
+        id: 1,
+        exercise: "Squat",
+        reps: "10",
+        sets: "3",
+        weight: "80",
+        date: "2025-04-05",
+      },
+      {
+        id: 2,
+        exercise: "Bench Press",
+        reps: "8",
+        sets: "4",
+        weight: "60",
+        date: "2025-04-06",
+      },
+    ]);
+  }, []);
 
-  const handleChange = (e) => {
-    setWorkout({ ...workout, [e.target.name]: e.target.value });
+  const handleChange = (index, field, value) => {
+    const updated = [...workouts];
+    updated[index][field] = value;
+    setWorkouts(updated);
   };
 
-  const handleUpdate = async (e) => {
+  const handleUpdate = (e, id) => {
     e.preventDefault();
-    await updateWorkout(id, workout);
-    alert("Updated!");
-    navigate("/progress");
+    alert(`Workout ${id} updated!`);
   };
 
   return (
-    <form
-      onSubmit={handleUpdate}
-      className="p-6 max-w-md mx-auto mt-10 text-red-600 font-light"
-    >
-      <h2 className="text-2xl mb-4 text-center">Edit Workout</h2>
-      {["exercise", "reps", "sets", "weight", "date"].map((field) => (
-        <input
-          key={field}
-          name={field}
-          value={workout[field] || ""}
-          placeholder={field}
-          className="block w-full mb-4 border p-2"
-          onChange={handleChange}
-        />
-      ))}
-      <button type="submit" className="w-full bg-red-600 text-white py-2 rounded">
-        Update
-      </button>
-    </form>
+    <div className="w-full max-w-3xl pt-20 px-4 sm:px-8 md:px-16 lg:px-20 text-red-700 mx-auto">
+      <h2 className="text-3xl font-bold text-center mb-8">Edit Past Workouts</h2>
+      {workouts.length === 0 ? (
+        <p className="text-center">No workouts to edit.</p>
+      ) : (
+        workouts.map((workout, index) => (
+          <form
+            key={workout.id}
+            onSubmit={(e) => handleUpdate(e, workout.id)}
+            className="mb-8 border border-red-300 rounded-xl p-6 shadow-md bg-white"
+          >
+            <h3 className="text-lg font-semibold mb-4">
+              Workout #{workout.id}
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+              {["exercise", "reps", "weight", "date"].map((field) => (
+                <div key={field} className="flex flex-col">
+                  <label className="mb-1 capitalize text-sm font-medium text-gray-600">
+                    {field}
+                  </label>
+                  <input
+                    name={field}
+                    value={workout[field]}
+                    placeholder={field}
+                    type={field === "date" ? "date" : "text"}
+                    onChange={(e) =>
+                      handleChange(index, field, e.target.value)
+                    }
+                    className="p-2 border rounded"
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="mt-1 text-sm text-gray-600">
+              * Weight in <strong>kgs</strong>
+            </p>
+            <button
+              type="submit"
+              className="mt-4 bg-red-800 text-white py-2 px-6 rounded hover:bg-red-900"
+            >
+              Update Workout
+            </button>
+          </form>
+        ))
+      )}
+    </div>
   );
 };
 

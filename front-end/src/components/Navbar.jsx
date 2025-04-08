@@ -1,25 +1,19 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from '../context/AuthContext'; 
 
 const menus = [
   { name: "Home", path: "/home" },
   { name: "Stats", path: "/dashboard" },
   { name: "Log a Workout", path: "/logworkout" },
-  { name: "Exercise Types", path: "/progress" },
+  { name: "Exercise Types", path: "/exercises" },
 ];
 
 const Navbar = () => {
-  const { user, logout } = useAuth();  
   const [toggleMenu, setToggleMenu] = useState(false);
   const location = useLocation();
 
   const handleMenuClick = () => {
-    setToggleMenu(false); 
-  };
-
-  const handleLogout = () => {
-    logout();  
+    setToggleMenu(false);
   };
 
   return (
@@ -62,22 +56,9 @@ const Navbar = () => {
             </Link>
           ))}
 
-          <div className="flex items-center gap-2 border border-white px-3 py-1 rounded-full">
-            {user ? (
-              <>
-                <img
-                  src={user.photoURL || "https://via.placeholder.com/30"}  
-                  alt="User"
-                  className="w-8 h-8 rounded-full border border-white"
-                />
-                <button onClick={handleLogout} className="text-white text-sm hover:underline">Logout</button>
-              </>
-            ) : (
-              <Link to="/signup" className="text-white text-sm hover:underline">
-                Sign Up
-              </Link>
-            )}
-          </div>
+          <Link to="/signup" className="text-white text-sm hover:underline border border-white px-3 py-1 rounded-full">
+            Sign Up
+          </Link>
         </nav>
       </div>
 
@@ -94,28 +75,13 @@ const Navbar = () => {
             </Link>
           ))}
 
-          <div className="flex items-center gap-2 border border-white px-3 py-1 rounded-full mt-2">
-            {user ? (
-              <>
-                <img
-                  src={user.photoURL || "https://via.placeholder.com/30"}  
-                  alt="User"
-                  className="w-8 h-8 rounded-full border border-white"
-                />
-                <button onClick={handleLogout} className="text-sm hover:underline">
-                  Logout
-                </button>
-              </>
-            ) : (
-              <Link
-                to="/signup"
-                onClick={handleMenuClick}
-                className="text-sm hover:underline"
-              >
-                Sign Up
-              </Link>
-            )}
-          </div>
+          <Link
+            to="/signup"
+            onClick={handleMenuClick}
+            className="text-sm hover:underline border border-white px-3 py-1 rounded-full block text-center"
+          >
+            Sign Up
+          </Link>
         </div>
       )}
     </header>

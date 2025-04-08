@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "../firebase"; 
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -16,12 +14,6 @@ const Login = () => {
     } else {
       console.error("Please provide both email and password.");
     }
-  };
-
-  const handleGoogleLogin = () => {
-    signInWithPopup(auth, provider)
-      .then(() => navigate("/dashboard"))
-      .catch((err) => console.error("Google Sign-In Error:", err));
   };
 
   return (
@@ -46,13 +38,6 @@ const Login = () => {
           Login
         </button>
       </form>
-
-      <button
-        onClick={handleGoogleLogin}
-        className="w-full mt-4 bg-white text-gray-800 border border-gray-300 py-2 rounded hover:bg-gray-100"
-      >
-        Continue with Google
-      </button>
     </div>
   );
 };

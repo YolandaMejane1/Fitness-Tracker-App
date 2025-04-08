@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "../firebase"; 
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -32,22 +30,20 @@ const SignUp = () => {
     }
   };
 
-  const handleGoogleSignUp = () => {
-    signInWithPopup(auth, provider)
-      .then(() => {
-        alert("Signed up with Google!");
-        setIsModalOpen(false);
-      })
-      .catch((err) => console.error("Google Sign-Up Error:", err));
-  };
-
   return (
     <div>
       {isModalOpen && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-8 rounded-lg max-w-sm w-full text-center text-red-600">
-            <h2 className="text-2xl mb-4">Sign Up</h2>
-            {error && <p className="text-red-500 mb-4">{error}</p>}
+        <div
+          className="fixed inset-0 bg-cover bg-center flex justify-center items-center"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1667781838690-5f32ea0ccea6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+          }}
+        >
+          <div className="absolute inset-0 bg-black/60 z-0" />
+          <div className="backdrop-blur  bg-black opacity-80 p-8 rounded-2xl max-w-sm w-full text-center border border-red-800 text-white shadow-2xl">
+            <h2 className="text-2xl mb-4 font-semibold">Sign Up</h2>
+            {error && <p className="text-red-300 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
               <input
                 type="email"
@@ -55,7 +51,7 @@ const SignUp = () => {
                 value={email}
                 onChange={handleChange}
                 placeholder="Email"
-                className="w-full p-2 mb-4 border border-red-600 rounded"
+                className="w-full p-2 mb-4 border border-white bg-transparent text-white placeholder-white rounded"
                 required
               />
               <input
@@ -64,7 +60,7 @@ const SignUp = () => {
                 value={password}
                 onChange={handleChange}
                 placeholder="Password"
-                className="w-full p-2 mb-4 border border-red-600 rounded"
+                className="w-full p-2 mb-4 border border-white bg-transparent text-white placeholder-white rounded"
                 required
               />
               <input
@@ -73,27 +69,20 @@ const SignUp = () => {
                 value={confirmPassword}
                 onChange={handleChange}
                 placeholder="Confirm Password"
-                className="w-full p-2 mb-4 border border-red-600 rounded"
+                className="w-full p-2 mb-4 border border-white bg-transparent text-white placeholder-white rounded"
                 required
               />
               <button
                 type="submit"
-                className="w-full bg-red-600 text-white py-2 rounded"
+                className="w-full bg-red-700 hover:bg-red-800 text-white py-2 rounded font-semibold"
               >
                 Sign Up
               </button>
             </form>
 
             <button
-              onClick={handleGoogleSignUp}
-              className="w-full mt-4 bg-white text-gray-800 border border-gray-300 py-2 rounded hover:bg-gray-100"
-            >
-              Continue with Google
-            </button>
-
-            <button
               onClick={() => setIsModalOpen(false)}
-              className="mt-4 text-gray-600 hover:text-gray-900"
+              className="mt-4 text-white hover:underline"
             >
               Close
             </button>
