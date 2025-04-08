@@ -1,35 +1,32 @@
-import { gql, useMutation } from '@apollo/client';
-
-const ADD_WORKOUT = gql`
-  mutation AddWorkout($exercise: String!, $reps: String!, $date: String!) {
-    addWorkout(exercise: $exercise, reps: $reps, date: $date) {
-      id
-      exercise
-      reps
-      date
-    }
-  }
-`;
+import React, { useState } from 'react';
+import { getAuth } from 'firebase/auth';
+import { addWorkout } from '../services/api'; 
 
 const LogWorkout = () => {
-  const [addWorkout] = useMutation(ADD_WORKOUT);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { exercise, reps, date } = e.target.elements;
 
+    const workoutData = {
+      exercise: exercise.value,
+      reps: reps.value,
+      date: date.value,
+    };
+
     try {
-      await addWorkout({
-        variables: {
-          exercise: exercise.value,
-          reps: reps.value,
-          date: date.value,
-        },
-      });
-      
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) throw new Error('User is not authenticated');
+
+      const token = await user.getIdToken();
+
+      await addWorkout(workoutData, token); 
+
       e.target.reset();
     } catch (error) {
-      console.error('Error adding workout:', error);
+      setError('Error adding workout: ' + error.message);
     }
   };
 
@@ -42,7 +39,9 @@ const LogWorkout = () => {
         <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">
           Log Your Workout
         </h2>
-        
+
+        {error && <p className="text-red-600 text-center mb-4">{error}</p>} 
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700" htmlFor="exercise">
             Exercise

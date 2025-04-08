@@ -1,4 +1,4 @@
-import React, { useState, useEffect }  from 'react';
+import React  from 'react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
@@ -8,7 +8,7 @@ const Home = () => {
   <div className="w-1/2 h-full pt-0 mt-0 top-0">
     <img
       src="https://images.unsplash.com/photo-1653276526709-c424ad920de6?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NDh8fHJlZCUyMGd5bSUyMHBlcnNvbnxlbnwwfDF8MHx8fDA%3D"
-      alt="Left image"
+      alt="Left"
       className="w-full h-full object-cover"
     />
   </div>
@@ -18,7 +18,7 @@ const Home = () => {
     <div className="absolute inset-0 bg-black opacity-30"></div>
     <img
       src="https://images.unsplash.com/photo-1686757328248-cfe22f6ba269?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-      alt="Right image"
+      alt="Right"
       className="w-full h-full object-cover"
     />
   </div>

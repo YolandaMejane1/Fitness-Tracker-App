@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { signInWithPopup } from "firebase/auth";
+import { auth, provider } from "../firebase"; 
 
 const SignUp = () => {
   const [email, setEmail] = useState("");
@@ -28,6 +30,15 @@ const SignUp = () => {
     } else if (e.target.name === "confirmPassword") {
       setConfirmPassword(e.target.value);
     }
+  };
+
+  const handleGoogleSignUp = () => {
+    signInWithPopup(auth, provider)
+      .then(() => {
+        alert("Signed up with Google!");
+        setIsModalOpen(false);
+      })
+      .catch((err) => console.error("Google Sign-Up Error:", err));
   };
 
   return (
@@ -72,6 +83,14 @@ const SignUp = () => {
                 Sign Up
               </button>
             </form>
+
+            <button
+              onClick={handleGoogleSignUp}
+              className="w-full mt-4 bg-white text-gray-800 border border-gray-300 py-2 rounded hover:bg-gray-100"
+            >
+              Continue with Google
+            </button>
+
             <button
               onClick={() => setIsModalOpen(false)}
               className="mt-4 text-gray-600 hover:text-gray-900"

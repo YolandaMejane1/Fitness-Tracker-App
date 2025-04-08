@@ -1,23 +1,58 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery, gql } from '@apollo/client';
-
-const GET_WORKOUTS = gql`
-  query GetWorkouts {
-    workouts {
-      id
-      date
-      exercise
-      reps
-    }
-  }
-`;
+import axios from 'axios';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
 const Dashboard = () => {
-  const { loading, error, data } = useQuery(GET_WORKOUTS);
+  const [workouts, setWorkouts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const auth = getAuth();
+
+   
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+      } else {
+        setUser(null);
+        console.log("🚫 No user is logged in.");
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const fetchWorkouts = async () => {
+      if (!user) return;  
+
+      try {
+        const token = await user.getIdToken();
+        const response = await axios.get('http://localhost:5000/api/workouts', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setWorkouts(response.data);
+      } catch (error) {
+        setError(error.message);
+        console.error("Error fetching workouts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchWorkouts();
+    }
+  }, [user]);
 
   if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="text-center text-red-700 pt-20">
@@ -26,11 +61,11 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl shadow-md p-6 border">
           <h2 className="text-xl font-semibold mb-4">Recent Workouts</h2>
-          {data.workouts.length === 0 ? (
+          {workouts.length === 0 ? (
             <p>No workouts available</p>
           ) : (
             <ul>
-              {data.workouts.map((workout) => (
+              {workouts.map((workout) => (
                 <li key={workout.id} className="mb-2 border-b pb-2">
                   <p className="font-medium">{workout.exercise}</p>
                   <p>{workout.reps} Reps</p>

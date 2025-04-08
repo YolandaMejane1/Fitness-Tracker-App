@@ -1,6 +1,6 @@
-import React, { useContext, useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import AuthContext from "../context/AuthContext";
+import { useAuth } from '../context/AuthContext'; 
 
 const menus = [
   { name: "Home", path: "/home" },
@@ -10,7 +10,7 @@ const menus = [
 ];
 
 const Navbar = () => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useAuth();  
   const [toggleMenu, setToggleMenu] = useState(false);
   const location = useLocation();
 
@@ -18,19 +18,22 @@ const Navbar = () => {
     setToggleMenu(false); 
   };
 
+  const handleLogout = () => {
+    logout();  
+  };
+
   return (
     <header className="fixed left-0 right-0 z-50 bg-red-800 bg-opacity-95 py-4">
       <div className="flex justify-between items-center px-4 max-w-7xl mx-auto">
-      <Link
-  to="/home"
-  className="text-white font-bold text-lg uppercase tracking-wide"
->
-  Fitness{" "}
-  <span className="text-red-800 border bg-white border-white px-1">
-    Tracker
-  </span>
-</Link>
-
+        <Link
+          to="/home"
+          className="text-white font-bold text-lg uppercase tracking-wide"
+        >
+          Fitness{" "}
+          <span className="text-red-800 border bg-white border-white px-1">
+            Tracker
+          </span>
+        </Link>
 
         <div className="sm:hidden">
           <button onClick={() => setToggleMenu(!toggleMenu)}>
@@ -60,13 +63,15 @@ const Navbar = () => {
           ))}
 
           <div className="flex items-center gap-2 border border-white px-3 py-1 rounded-full">
-            <img
-              src="https://via.placeholder.com/30"
-              alt="User"
-              className="w-8 h-8 rounded-full border border-white"
-            />
             {user ? (
-              <button className="text-white text-sm hover:underline">Logout</button>
+              <>
+                <img
+                  src={user.photoURL || "https://via.placeholder.com/30"}  
+                  alt="User"
+                  className="w-8 h-8 rounded-full border border-white"
+                />
+                <button onClick={handleLogout} className="text-white text-sm hover:underline">Logout</button>
+              </>
             ) : (
               <Link to="/signup" className="text-white text-sm hover:underline">
                 Sign Up
@@ -90,15 +95,17 @@ const Navbar = () => {
           ))}
 
           <div className="flex items-center gap-2 border border-white px-3 py-1 rounded-full mt-2">
-            <img
-              src="https://via.placeholder.com/30"
-              alt="User"
-              className="w-8 h-8 rounded-full border border-white"
-            />
             {user ? (
-              <button onClick={handleMenuClick} className="text-sm hover:underline">
-                Logout
-              </button>
+              <>
+                <img
+                  src={user.photoURL || "https://via.placeholder.com/30"}  
+                  alt="User"
+                  className="w-8 h-8 rounded-full border border-white"
+                />
+                <button onClick={handleLogout} className="text-sm hover:underline">
+                  Logout
+                </button>
+              </>
             ) : (
               <Link
                 to="/signup"
