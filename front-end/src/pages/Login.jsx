@@ -24,7 +24,7 @@ const Login = () => {
 
         const decodedUser = decodeToken();
         if (decodedUser) {
-          navigate('/dashboard');
+          navigate('/');
         } else {
           setError('Invalid token');
         }
@@ -44,7 +44,7 @@ const Login = () => {
 
       const decodedUser = decodeToken();
       if (decodedUser) {
-        navigate('/dashboard');
+        navigate('/');
       } else {
         setError('Invalid token');
       }

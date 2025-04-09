@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { decodeToken } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const [name, setName] = useState("");
@@ -9,6 +10,7 @@ const SignUp = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(true);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,6 +34,9 @@ const SignUp = () => {
       console.log("Signed up user:", decodedUser);
 
       alert("User signed up successfully!");
+
+      navigate("/");
+
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error during sign up:", error);
@@ -50,7 +55,7 @@ const SignUp = () => {
     <div>
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-cover  bg-center flex justify-center items-center"
+          className="fixed inset-0 bg-cover bg-center flex justify-center items-center"
           style={{
             backgroundImage:
               "url('https://images.unsplash.com/photo-1667781838690-5f32ea0ccea6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
