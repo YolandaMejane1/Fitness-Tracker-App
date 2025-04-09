@@ -51,10 +51,9 @@ const EditWorkout = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const userId = getUserIdFromToken();
 
       await axios.put(
-        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}/${workoutId}`,
+        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`, 
         updatedWorkout,
         {
           headers: {
@@ -82,10 +81,9 @@ const EditWorkout = () => {
   const handleDelete = async (workoutId) => {
     try {
       const token = localStorage.getItem("token");
-      const userId = getUserIdFromToken();
 
       await axios.delete(
-        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}/${workoutId}`,
+        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`, 
         {
           headers: {
             Authorization: `Bearer ${token}`,
