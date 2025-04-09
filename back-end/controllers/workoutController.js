@@ -5,7 +5,7 @@ export const getAllWorkouts = async (req, res) => {
     const workouts = await Workout.find();
     res.status(200).json(workouts);
   } catch (error) {
-    res.status(500).json({ message: 'Error retrieving workouts' });
+    res.status(500).json({ message: 'Error retrieving workouts', error: error.message });
   }
 };
 
@@ -24,7 +24,7 @@ export const addWorkout = async (req, res) => {
     const savedWorkout = await newWorkout.save();
     res.status(201).json(savedWorkout);
   } catch (error) {
-    res.status(400).json({ message: 'Error adding workout log' });
+    res.status(400).json({ message: 'Error adding workout log', error: error.message });
   }
 };
 
@@ -45,7 +45,7 @@ export const updateWorkout = async (req, res) => {
 
     res.status(200).json(updatedWorkout);
   } catch (error) {
-    res.status(400).json({ message: 'Error updating workout log' });
+    res.status(400).json({ message: 'Error updating workout log', error: error.message });
   }
 };
 
@@ -61,7 +61,8 @@ export const deleteWorkout = async (req, res) => {
 
     res.status(200).json({ message: 'Workout deleted successfully' });
   } catch (error) {
-    res.status(400).json({ message: 'Error deleting workout log' });
+   
+    res.status(400).json({ message: 'Error deleting workout log', error: error.message });
   }
 };
 
@@ -82,6 +83,6 @@ export const getProgress = async (req, res) => {
       maxWeight,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error retrieving progress' });
+    res.status(500).json({ message: 'Error retrieving progress', error: error.message });
   }
 };

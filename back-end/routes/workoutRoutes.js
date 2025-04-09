@@ -52,16 +52,15 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
 
   try {
-    const workout = await Workout.findOne({ _id: id, userId: req.user.userId });
+    const deletedWorkout = await Workout.findOneAndDelete({ _id: id, userId: req.user.userId });
 
-    if (!workout) {
+    if (!deletedWorkout) {
       return res.status(404).json({ message: 'Workout not found or you are not authorized to delete this workout' });
     }
 
-    await workout.remove();
     res.status(200).json({ message: 'Workout deleted successfully' });
   } catch (err) {
-    res.status(400).json({ message: 'Failed to delete workout' });
+    res.status(400).json({ message: 'Failed to delete workout', error: err.message });
   }
 });
 
