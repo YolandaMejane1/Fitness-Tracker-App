@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 import { decodeToken } from "../services/authService";
+import axiosInstance from "../api/axiosInstance";
 
 const EditWorkout = () => {
   const [workouts, setWorkouts] = useState([]);
@@ -17,18 +17,13 @@ const EditWorkout = () => {
     const fetchWorkouts = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(
-          "https://fitness-tracker-app-iuw4.onrender.com/api/workouts",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axiosInstance.get("/workouts", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setWorkouts(response.data);
-      } catch (error) {
-        console.error("Error fetching workouts:", error.message);
-      }
+      } catch (error) {}
     };
 
     fetchWorkouts();
@@ -42,9 +37,7 @@ const EditWorkout = () => {
 
   const handleUpdate = async (e, workoutId) => {
     e.preventDefault();
-
     const updatedWorkout = workouts.find((workout) => workout._id === workoutId);
-
     updatedWorkout.reps = Number(updatedWorkout.reps);
     updatedWorkout.sets = Number(updatedWorkout.sets);
     updatedWorkout.weight = Number(updatedWorkout.weight);
@@ -53,30 +46,19 @@ const EditWorkout = () => {
       const token = localStorage.getItem("token");
       const userId = getUserIdFromToken();
 
-      await axios.put(
-        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}/${workoutId}`,
-        updatedWorkout,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      alert(`Workout ${workoutId} updated successfully!`);
+      await axiosInstance.put(`/workouts/${userId}/${workoutId}`, updatedWorkout, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      const response = await axios.get(
-        "https://fitness-tracker-app-iuw4.onrender.com/api/workouts",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosInstance.get("/workouts", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setWorkouts(response.data);
-    } catch (error) {
-      console.error("Error updating workout:", error.message);
-      alert("Error updating workout. Please try again.");
-    }
+    } catch (error) {}
   };
 
   const handleDelete = async (workoutId) => {
@@ -84,20 +66,14 @@ const EditWorkout = () => {
       const token = localStorage.getItem("token");
       const userId = getUserIdFromToken();
 
-      await axios.delete(
-        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}/${workoutId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axiosInstance.delete(`/workouts/${userId}/${workoutId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       setWorkouts(workouts.filter((workout) => workout._id !== workoutId));
-      alert(`Workout ${workoutId} deleted successfully!`);
-    } catch (error) {
-      console.error("Error deleting workout:", error.message);
-      alert("Error deleting workout. Please try again.");
-    }
+    } catch (error) {}
   };
 
   return (
@@ -123,7 +99,6 @@ const EditWorkout = () => {
                 >
                   <FontAwesomeIcon icon={faTrashAlt} />
                 </button>
-
                 <h3 className="text-lg font-semibold mb-4">Workout #{index + 1}</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                   {["exercise", "reps", "sets", "weight"].map((field) => (
