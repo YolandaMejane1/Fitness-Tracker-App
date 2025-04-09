@@ -2,9 +2,16 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
+import { decodeToken } from "../services/authService";
 
 const EditWorkout = () => {
   const [workouts, setWorkouts] = useState([]);
+
+  const getUserIdFromToken = () => {
+    const token = localStorage.getItem("token");
+    const decodedToken = decodeToken(token);
+    return decodedToken.userId;
+  };
 
   useEffect(() => {
     const fetchWorkouts = async () => {
@@ -44,9 +51,10 @@ const EditWorkout = () => {
 
     try {
       const token = localStorage.getItem("token");
+      const userId = getUserIdFromToken();
 
       await axios.put(
-        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`,
+        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}/${workoutId}`,
         updatedWorkout,
         {
           headers: {
@@ -74,9 +82,10 @@ const EditWorkout = () => {
   const handleDelete = async (workoutId) => {
     try {
       const token = localStorage.getItem("token");
+      const userId = getUserIdFromToken();
 
       await axios.delete(
-        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`,
+        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}/${workoutId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
