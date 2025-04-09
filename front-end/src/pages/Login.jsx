@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../api/axiosInstance'; 
 import { decodeToken } from '../services/authService'; 
 
 const Login = () => {
@@ -14,7 +14,7 @@ const Login = () => {
 
     try {
       if (email && password) {
-        const response = await axios.post('/api/auth/login', {
+        const response = await axiosInstance.post('/auth/login', {
           email,
           password,
         });
@@ -38,7 +38,7 @@ const Login = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      const response = await axios.post('/api/auth/google', {});
+      const response = await axiosInstance.post('/auth/google', {});
       const { token } = response.data;
       localStorage.setItem('token', token);
 

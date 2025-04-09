@@ -21,7 +21,7 @@ const EditWorkout = () => {
     const fetchWorkouts = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`http://localhost:5002/api/workouts/${userId}`, {
+        const response = await axios.get(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -54,14 +54,14 @@ const EditWorkout = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`http://localhost:5002/api/workouts/${workoutId}`, updatedWorkout, {
+      await axios.put(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`, updatedWorkout, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       alert(`Workout ${workoutId} updated successfully!`);
 
-      const response = await axios.get(`http://localhost:5002/api/workouts/${userId}`, {
+      const response = await axios.get(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,7 +76,7 @@ const EditWorkout = () => {
   const handleDelete = async (workoutId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:5002/api/workouts/${workoutId}`, {
+      await axios.delete(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

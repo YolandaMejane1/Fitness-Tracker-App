@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { getToken } from '../services/authService';
+import { getToken } from '../services/authService';  
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5002/api',
+  baseURL: 'https://fitness-tracker-app-iuw4.onrender.com/api',
 });
 
 axiosInstance.interceptors.request.use(

@@ -19,7 +19,7 @@ const SignUp = () => {
 
     try {
       setError("");
-      const res = await axios.post("http://localhost:5002/api/auth/signup", {
+      const res = await axios.post("https://fitness-tracker-app-iuw4.onrender.com/api/auth/signup", {
         name,
         email,
         password,
