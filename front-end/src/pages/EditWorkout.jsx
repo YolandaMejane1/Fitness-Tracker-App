@@ -5,11 +5,27 @@ import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
 const EditWorkout = () => {
   const [workouts, setWorkouts] = useState([]);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decodedToken = JSON.parse(atob(token.split('.')[1])); 
+      setUserId(decodedToken.userId); 
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
     const fetchWorkouts = async () => {
       try {
-        const response = await axios.get("http://localhost:5002/api/workouts");
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`http://localhost:5002/api/workouts/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setWorkouts(response.data);
       } catch (error) {
         console.error("Error fetching workouts:", error.message);
@@ -17,7 +33,7 @@ const EditWorkout = () => {
     };
 
     fetchWorkouts();
-  }, []);
+  }, [userId]);
 
   const handleChange = (index, field, value) => {
     const updated = [...workouts];
@@ -34,11 +50,22 @@ const EditWorkout = () => {
     updatedWorkout.sets = Number(updatedWorkout.sets);
     updatedWorkout.weight = Number(updatedWorkout.weight);
 
+    updatedWorkout.userId = userId;
+
     try {
-      await axios.put(`http://localhost:5002/api/workouts/${workoutId}`, updatedWorkout);
+      const token = localStorage.getItem("token");
+      await axios.put(`http://localhost:5002/api/workouts/${workoutId}`, updatedWorkout, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       alert(`Workout ${workoutId} updated successfully!`);
 
-      const response = await axios.get("http://localhost:5002/api/workouts");
+      const response = await axios.get(`http://localhost:5002/api/workouts/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setWorkouts(response.data);
     } catch (error) {
       console.error("Error updating workout:", error.message);
@@ -48,7 +75,12 @@ const EditWorkout = () => {
 
   const handleDelete = async (workoutId) => {
     try {
-      await axios.delete(`http://localhost:5002/api/workouts/${workoutId}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:5002/api/workouts/${workoutId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setWorkouts(workouts.filter((workout) => workout._id !== workoutId));
       alert(`Workout ${workoutId} deleted successfully!`);
     } catch (error) {
@@ -58,17 +90,15 @@ const EditWorkout = () => {
   };
 
   return (
-    <div
-      className="w-screen h-screen pt-20 px-4 sm:px-8 md:px-16 lg:px-20 text-red-800 bg-white"
-    >
-      <h2 className="text-3xl font-bold text-center mb-8">Edit Past Workouts</h2>
+    <div className="w-screen h-screen pt-20 px-4 sm:px-8 md:px-16 lg:px-20 text-red-800 bg-white">
+      <h2 className="text-3xl font-bold text-center mb-8">Your Workouts</h2>
       {workouts.length === 0 ? (
         <p className="text-center">No workouts to edit.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {workouts
             .slice()
-            .reverse() 
+            .reverse()
             .map((workout, index) => (
               <form
                 key={workout._id}

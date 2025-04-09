@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { decodeToken } from '../services/authService'; 
 import { createWorkout } from '../api/workoutApi';
 
 const exercises = [
@@ -24,7 +25,17 @@ const exercises = [
 const LogWorkout = () => {
   const [error, setError] = useState('');
   const [selectedExercise, setSelectedExercise] = useState('');
+  const [userId, setUserId] = useState(null);
   const location = useLocation();
+
+  useEffect(() => {
+    const decodedToken = decodeToken(); 
+    if (decodedToken) {
+      setUserId(decodedToken.userId);
+    } else {
+      console.error('Token is invalid or expired');
+    }
+  }, []);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -44,10 +55,11 @@ const LogWorkout = () => {
     }
 
     const workoutData = {
-      exercise: selectedExercise,  
+      userId,
+      exercise: selectedExercise,
       reps: Number(reps.value),
       sets: Number(sets.value),
-      weight: Number(load.value),  
+      weight: Number(load.value),
       date: date.value,
     };
 
@@ -74,7 +86,7 @@ const LogWorkout = () => {
 
       <form
         onSubmit={handleSubmit}
-        className="relative z-10  bg-black bg-opacity-50 p-8 rounded-2xl shadow-lg border border-red-900 w-full max-w-md"
+        className="relative z-10 bg-black bg-opacity-50 p-8 rounded-2xl shadow-lg border border-red-900 w-full max-w-md"
       >
         <h2 className="text-2xl font-semibold text-center mb-6 text-white">
           Log Your Workout

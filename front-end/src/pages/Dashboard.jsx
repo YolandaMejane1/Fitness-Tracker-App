@@ -1,15 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchWorkouts } from '../api/workoutApi'; 
+import { getToken, decodeToken } from '../services/authService';
+import { fetchWorkouts } from '../api/workoutApi';
 
 const Dashboard = () => {
   const [workouts, setWorkouts] = useState([]);
   const [stats, setStats] = useState({ totalWorkouts: 0, totalVolume: 0, maxWeight: 0 });
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    const token = getToken();
+    if (token) {
+      try {
+        const decoded = decodeToken();
+        setUserId(decoded.userId);
+      } catch (err) {
+        console.error('Invalid token:', err);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+
     const getWorkouts = async () => {
       try {
-        const data = await fetchWorkouts();
+        const data = await fetchWorkouts(userId);
         setWorkouts(data);
 
         const totalVolume = data.reduce((acc, w) => acc + (w.reps * (w.weight || 0)), 0);
@@ -23,7 +39,7 @@ const Dashboard = () => {
     };
 
     getWorkouts();
-  }, []);
+  }, [userId]);
 
   return (
     <div 
@@ -37,23 +53,22 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold mb-6 text-center text-white">Welcome to Your Dashboard</h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-         
           <div className="bg-black bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
             <h3 className="text-lg font-semibold mb-2">Total Workouts</h3>
             <p className="text-2xl font-bold">{stats.totalWorkouts}</p>
           </div>
 
-          <div className="bg-black  bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
+          <div className="bg-black bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
             <h3 className="text-lg font-semibold mb-2">Total Volume Lifted</h3>
             <p className="text-2xl font-bold">{stats.totalVolume} kg</p>
           </div>
 
-          <div className="bg-black  bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
+          <div className="bg-black bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
             <h3 className="text-lg font-semibold mb-2">Max Weight</h3>
             <p className="text-2xl font-bold">{stats.maxWeight} kg</p>
           </div>
 
-          <div className="bg-black  bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
+          <div className="bg-black bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
             <h3 className="text-lg font-semibold mb-2">Recent Workouts</h3>
             {workouts.length === 0 ? (
               <p>No recent data</p>

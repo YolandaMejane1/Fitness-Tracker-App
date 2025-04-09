@@ -1,50 +1,75 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { decodeToken } from "../services/authService";
 
 const SignUp = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(true);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
     }
 
-    setError("");
-    alert("User signed up successfully!");
-    setIsModalOpen(false);
+    try {
+      setError("");
+      const res = await axios.post("http://localhost:5002/api/auth/signup", {
+        name,
+        email,
+        password,
+      });
+
+      const { token } = res.data;
+      localStorage.setItem("token", token);
+
+      const decodedUser = decodeToken();
+      console.log("Signed up user:", decodedUser);
+
+      alert("User signed up successfully!");
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error during sign up:", error);
+      setError("An error occurred while signing up.");
+    }
   };
 
   const handleChange = (e) => {
-    if (e.target.name === "email") {
-      setEmail(e.target.value);
-    } else if (e.target.name === "password") {
-      setPassword(e.target.value);
-    } else if (e.target.name === "confirmPassword") {
-      setConfirmPassword(e.target.value);
-    }
+    if (e.target.name === "name") setName(e.target.value);
+    else if (e.target.name === "email") setEmail(e.target.value);
+    else if (e.target.name === "password") setPassword(e.target.value);
+    else if (e.target.name === "confirmPassword") setConfirmPassword(e.target.value);
   };
 
   return (
     <div>
       {isModalOpen && (
         <div
-          className="fixed inset-0 bg-cover bg-center flex justify-center items-center"
+          className="fixed inset-0 bg-cover  bg-center flex justify-center items-center"
           style={{
             backgroundImage:
               "url('https://images.unsplash.com/photo-1667781838690-5f32ea0ccea6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
           }}
         >
           <div className="absolute inset-0 bg-black/60 z-0" />
-          <div className="backdrop-blur  bg-black opacity-80 p-8 rounded-2xl max-w-sm w-[70%] sm:w-[50%] hover:text-center border border-red-800 text-white shadow-2xl">
+          <div className="backdrop-blur bg-black opacity-80 p-8 rounded-2xl max-w-sm w-[70%] sm:w-[50%] hover:text-center border border-red-800 text-white shadow-2xl">
             <h2 className="text-2xl mb-4 font-semibold">Sign Up</h2>
             {error && <p className="text-red-300 mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
+              <input
+                type="text"
+                name="name"
+                value={name}
+                onChange={handleChange}
+                placeholder="Full Name"
+                className="w-full p-2 mb-4 border border-white bg-transparent text-white placeholder-white rounded"
+                required
+              />
               <input
                 type="email"
                 name="email"
@@ -79,7 +104,6 @@ const SignUp = () => {
                 Sign Up
               </button>
             </form>
-
             <button
               onClick={() => setIsModalOpen(false)}
               className="mt-4 text-white hover:underline ml-36"

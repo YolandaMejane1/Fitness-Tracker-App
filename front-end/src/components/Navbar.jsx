@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { getToken, logout } from "../services/authService";
+import { decodeToken } from "../services/authService";
 
 const menus = [
   { name: "Home", path: "/home" },
@@ -10,11 +12,32 @@ const menus = [
 
 const Navbar = () => {
   const [toggleMenu, setToggleMenu] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const handleMenuClick = () => {
     setToggleMenu(false);
   };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    navigate("/home");
+  };
+
+  useEffect(() => {
+    const token = getToken();
+    if (token) {
+      try {
+        const decoded = decodeToken();
+        setUser(decoded);
+      } catch (err) {
+        console.error("Invalid token:", err);
+        logout();
+      }
+    }
+  }, []);
 
   return (
     <header className="fixed left-0 right-0 z-50 bg-red-800 bg-opacity-95 py-4">
@@ -56,9 +79,39 @@ const Navbar = () => {
             </Link>
           ))}
 
-          <Link to="/signup" className="text-white text-sm hover:underline border border-white px-3 py-1 rounded-full">
-            Sign Up
-          </Link>
+          {!user ? (
+            <>
+              <Link
+                to="/signup"
+                className="text-white text-sm hover:underline border border-white px-3 py-1 rounded-full"
+              >
+                Register
+              </Link>
+              <Link
+                to="/login"
+                className="text-white text-sm border border-white px-5 py-1 rounded-full"
+              >
+                Login
+              </Link>
+            </>
+          ) : (
+            <>
+              <span className="text-white text-sm mr-0">
+                Welcome, {user.name || "User"}
+              </span>
+              <img
+                src="/default-avatar.png"
+                alt="User profile"
+                className="w-8 h-8 rounded-full border-2 border-white"
+              />
+              <button
+                onClick={handleLogout}
+                className="ml-0 text-white text-sm border border-white px-3 py-1 rounded-full"
+              >
+                Sign Out
+              </button>
+            </>
+          )}
         </nav>
       </div>
 
@@ -75,13 +128,31 @@ const Navbar = () => {
             </Link>
           ))}
 
-          <Link
-            to="/signup"
-            onClick={handleMenuClick}
-            className="text-sm hover:underline border border-white px-3 py-1 rounded-full block text-center"
-          >
-            Sign Up
-          </Link>
+          {!user ? (
+            <>
+              <Link
+                to="/signup"
+                onClick={handleMenuClick}
+                className="text-sm hover:underline border border-white px-3 py-1 rounded-full block text-center"
+              >
+                Sign Up
+              </Link>
+              <Link
+                to="/login"
+                onClick={handleMenuClick}
+                className="w-full bg-white text-red-800 p-2 rounded-full block text-center"
+              >
+                Login
+              </Link>
+            </>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="w-full bg-red-500 text-white p-2 rounded"
+            >
+              Sign Out
+            </button>
+          )}
         </div>
       )}
     </header>
