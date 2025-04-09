@@ -13,7 +13,7 @@ const MONGO_URI = process.env.MONGO_URI;
 
 app.use(express.json());
 
-app.use(cors());
+app.use(cors({ origin:"https://fitness-tracker-app-iuw4.onrender.com" }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/workouts', workoutRoutes);
