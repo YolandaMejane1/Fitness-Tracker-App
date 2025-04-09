@@ -5,27 +5,19 @@ import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 
 const EditWorkout = () => {
   const [workouts, setWorkouts] = useState([]);
-  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decodedToken = JSON.parse(atob(token.split('.')[1])); 
-      setUserId(decodedToken.userId); 
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!userId) return;
-
     const fetchWorkouts = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axios.get(
+          "https://fitness-tracker-app-iuw4.onrender.com/api/workouts",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         setWorkouts(response.data);
       } catch (error) {
         console.error("Error fetching workouts:", error.message);
@@ -33,7 +25,7 @@ const EditWorkout = () => {
     };
 
     fetchWorkouts();
-  }, [userId]);
+  }, []);
 
   const handleChange = (index, field, value) => {
     const updated = [...workouts];
@@ -50,22 +42,28 @@ const EditWorkout = () => {
     updatedWorkout.sets = Number(updatedWorkout.sets);
     updatedWorkout.weight = Number(updatedWorkout.weight);
 
-    updatedWorkout.userId = userId;
-
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`, updatedWorkout, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+
+      await axios.put(
+        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`,
+        updatedWorkout,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       alert(`Workout ${workoutId} updated successfully!`);
 
-      const response = await axios.get(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.get(
+        "https://fitness-tracker-app-iuw4.onrender.com/api/workouts",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setWorkouts(response.data);
     } catch (error) {
       console.error("Error updating workout:", error.message);
@@ -76,11 +74,15 @@ const EditWorkout = () => {
   const handleDelete = async (workoutId) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+
+      await axios.delete(
+        `https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setWorkouts(workouts.filter((workout) => workout._id !== workoutId));
       alert(`Workout ${workoutId} deleted successfully!`);
     } catch (error) {
