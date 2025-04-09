@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import workoutRoutes from './routes/workoutRoutes.js';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -12,8 +13,15 @@ const MONGO_URI = process.env.MONGO_URI;
 
 app.use(express.json());
 
+app.use(cors());
+
 app.use('/api/auth', authRoutes);
 app.use('/api/workouts', workoutRoutes);
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Welcome to the backend Page!' });
+});
+
 
 mongoose
   .connect(MONGO_URI)
