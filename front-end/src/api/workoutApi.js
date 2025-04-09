@@ -3,7 +3,8 @@ import axiosInstance from './axiosInstance';
 const BASE_URL = '/workouts';
 
 export const createWorkout = async (workoutData) => {
-  const { data } = await axiosInstance.post(BASE_URL, { workoutData });
+  
+  const { data } = await axiosInstance.post(BASE_URL, workoutData);
   return data;
 };
 
