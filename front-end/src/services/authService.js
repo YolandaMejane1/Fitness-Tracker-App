@@ -20,6 +20,8 @@ export const decodeToken = () => {
   return jwtDecode(token);
 };
 
+console.log(TOKEN_KEY);
+
 export const logout = () => {
   removeToken();
 };
