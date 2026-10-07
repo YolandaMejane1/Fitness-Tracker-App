@@ -1,22 +1,25 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
-});
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, trim: true, default: '' },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    // Empty for accounts that only use Google sign-in.
+    password: { type: String, select: false },
+    googleId: { type: String, index: true, sparse: true },
+    picture: { type: String, default: '' },
+  },
+  { timestamps: true }
+);
 
-userSchema.methods.generateAuthToken = function () {
-  const token = jwt.sign({ userId: this._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  return token;
+userSchema.methods.isValidPassword = function (plain) {
+  if (!this.password) return Promise.resolve(false);
+  return bcrypt.compare(plain, this.password);
 };
 
-userSchema.methods.isValidPassword = async function (password) {
-  return await bcrypt.compare(password, this.password);
+userSchema.methods.toPublic = function () {
+  return { id: this._id.toString(), name: this.name, email: this.email, picture: this.picture };
 };
 
-const User = mongoose.model('User', userSchema);
-
-export default User;
+export default mongoose.model('User', userSchema);

@@ -1,36 +1,59 @@
 import express from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
+import { body } from 'express-validator';
+import rateLimit from 'express-rate-limit';
+import authMiddleware from '../middleware/authMiddleware.js';
+import { validate } from '../middleware/validate.js';
+import * as auth from '../services/authService.js';
 
 const router = express.Router();
 
-router.post('/signup', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ email, password: hashedPassword });
-    await newUser.save();
-    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.status(201).json({ token });
-  } catch (err) {
-    res.status(500).json({ message: 'Error creating user' });
-  }
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many attempts. Please try again in a few minutes' },
 });
 
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
-    const isMatch = await user.isValidPassword(password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
- 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    res.status(200).json({ token });
-  } catch (err) {
-    res.status(500).json({ message: 'Error logging in' });
+const email = body('email').trim().isEmail().withMessage('Enter a valid email address').normalizeEmail();
+const password = body('password').isString().isLength({ min: 8, max: 100 })
+  .withMessage('Password must be at least 8 characters');
+
+router.post(
+  '/signup',
+  limiter,
+  body('name').trim().isLength({ min: 1, max: 80 }).withMessage('Please enter your name'),
+  email,
+  password,
+  validate,
+  async (req, res, next) => {
+    try { res.status(201).json(await auth.signUp(req.body)); } catch (e) { next(e); }
   }
+);
+
+router.post(
+  '/login',
+  limiter,
+  email,
+  body('password').isString().notEmpty().withMessage('Enter your password'),
+  validate,
+  async (req, res, next) => {
+    try { res.json(await auth.logIn(req.body)); } catch (e) { next(e); }
+  }
+);
+
+router.post(
+  '/google',
+  limiter,
+  body('credential').isString().notEmpty().withMessage('Missing Google credential'),
+  validate,
+  async (req, res, next) => {
+    try { res.json(await auth.signInWithGoogle(req.body.credential)); } catch (e) { next(e); }
+  }
+);
+
+router.get('/me', authMiddleware, async (req, res, next) => {
+  try { res.json({ user: await auth.getUser(req.user.userId) }); } catch (e) { next(e); }
 });
 
 export default router;

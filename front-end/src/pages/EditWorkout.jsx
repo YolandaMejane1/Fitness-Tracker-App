@@ -1,131 +1,123 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrashAlt } from "@fortawesome/free-solid-svg-icons";
-import { decodeToken } from "../services/authService";
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { deleteWorkout, fetchWorkouts, updateWorkout } from '../api/workoutApi';
+import { errorMessage } from '../api/axiosInstance';
+import WorkoutForm from '../components/WorkoutForm';
+import { formatDate, toDateInput } from '../utils/exercises';
 
+// "My Workouts": full history with filter, edit-in-place and delete with confirmation.
 const EditWorkout = () => {
-  const [workouts, setWorkouts] = useState([]);
-
-  const getUserIdFromToken = () => {
-    const token = localStorage.getItem("token");
-    const decodedToken = decodeToken(token);
-    return decodedToken.userId;
-  };
+  const [workouts, setWorkouts] = useState(null);
+  const [error, setError] = useState('');
+  const [filter, setFilter] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [confirming, setConfirming] = useState(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const fetchWorkouts = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("https://fitness-tracker-app-iuw4.onrender.com/api/workouts", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setWorkouts(response.data);
-      } catch (error) {
-        console.error("Error fetching workouts:", error.message);
-      }
-    };
-    fetchWorkouts();
+    fetchWorkouts()
+      .then(setWorkouts)
+      .catch((err) => setError(errorMessage(err, 'Could not load your workouts.')));
   }, []);
 
-  const handleChange = (index, field, value) => {
-    const updated = [...workouts];
-    updated[index][field] = value;
-    setWorkouts(updated);
-  };
+  const exercises = useMemo(() => [...new Set((workouts || []).map((w) => w.exercise))].sort(), [workouts]);
+  const visible = (workouts || []).filter((w) => !filter || w.exercise === filter);
 
-  const handleUpdate = async (e, workoutId) => {
-    e.preventDefault();
-    const updatedWorkout = workouts.find((workout) => workout._id === workoutId);
-    updatedWorkout.reps = Number(updatedWorkout.reps);
-    updatedWorkout.sets = Number(updatedWorkout.sets);
-    updatedWorkout.weight = Number(updatedWorkout.weight);
+  const save = async (id, data) => {
+    setBusy(true);
+    setError('');
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`, updatedWorkout, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      alert(`Workout ${workoutId} updated successfully!`);
-      const response = await axios.get("https://fitness-tracker-app-iuw4.onrender.com/api/workouts", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setWorkouts(response.data);
-    } catch (error) {
-      console.error("Error updating workout:", error.response ? error.response.data : error.message);
-      alert("Error updating workout. Please try again.");
+      const updated = await updateWorkout(id, data);
+      setWorkouts((list) => list.map((w) => (w._id === id ? updated : w)));
+      setEditing(null);
+    } catch (err) {
+      setError(errorMessage(err, 'Could not update the workout.'));
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleDelete = async (workoutId) => {
+  const remove = async (id) => {
+    setBusy(true);
+    setError('');
     try {
-      const token = localStorage.getItem("token");
-      console.log("Deleting workout with ID:", workoutId);
-      const response = await axios.delete(`https://fitness-tracker-app-iuw4.onrender.com/api/workouts/${workoutId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("Delete response:", response.data);
-      setWorkouts(workouts.filter((workout) => workout._id !== workoutId));
-      alert(`Workout ${workoutId} deleted successfully!`);
-    } catch (error) {
-      console.error("Error deleting workout:", error.response ? error.response.data : error.message);
-      alert("Error deleting workout. Please try again.");
+      await deleteWorkout(id);
+      setWorkouts((list) => list.filter((w) => w._id !== id));
+      setConfirming(null);
+    } catch (err) {
+      setError(errorMessage(err, 'Could not delete the workout.'));
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
-    <div className="w-screen h-screen pt-20 px-4 sm:px-8 md:px-16 lg:px-20 text-red-800 bg-white">
-      <h2 className="text-3xl font-bold text-center mb-8">Your Workouts</h2>
-      {workouts.length === 0 ? (
-        <p className="text-center">No workouts to edit.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {workouts.slice().reverse().map((workout, index) => (
-            <form
-              key={workout._id}
-              onSubmit={(e) => handleUpdate(e, workout._id)}
-              className="mb-8 border border-red-800 rounded-xl p-6 shadow-md bg-black bg-opacity-90 text-white sm:w-11/12 sm:mx-auto md:w-5/6 lg:w-full relative"
-            >
-              <button
-                type="button"
-                onClick={() => handleDelete(workout._id)}
-                className="absolute bottom-8 right-5 text-white text-xl"
-              >
-                <FontAwesomeIcon icon={faTrashAlt} />
-              </button>
-              <h3 className="text-lg font-semibold mb-4">Workout #{index + 1}</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
-                {["exercise", "reps", "sets", "weight"].map((field) => (
-                  <div key={field} className="flex flex-col">
-                    <label className="mb-1 capitalize text-sm font-medium text-gray-100">{field}</label>
-                    <input
-                      name={field}
-                      value={workout[field]}
-                      placeholder={field}
-                      type={field === "date" ? "date" : "text"}
-                      onChange={(e) => handleChange(index, field, e.target.value)}
-                      className="p-2 border rounded bg-white text-black bg-opacity-70"
-                    />
-                  </div>
-                ))}
-                <div key="date" className="flex flex-col sm:col-span-2">
-                  <label className="mb-1 capitalize text-sm font-medium text-gray-300">Date</label>
-                  <input
-                    name="date"
-                    value={workout.date}
-                    onChange={(e) => handleChange(index, "date", e.target.value)}
-                    type="date"
-                    className="p-2 border rounded w-full bg-white text-black bg-opacity-70"
-                  />
-                </div>
-              </div>
-              <p className="mt-1 text-sm text-gray-300">* Weight in <strong>kgs</strong></p>
-              <button type="submit" className="mt-4 bg-red-800 text-white py-2 px-6 rounded hover:bg-red-900">
-                Update Workout
-              </button>
-            </form>
-          ))}
+    <div className="min-h-screen w-full bg-black text-white pt-24 pb-12 px-4">
+      <div className="max-w-3xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          <h1 className="text-3xl font-bold">My workouts</h1>
+          <select
+            aria-label="Filter by exercise"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="bg-black border border-red-800 rounded p-2 text-sm"
+          >
+            <option value="">All exercises</option>
+            {exercises.map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
         </div>
-      )}
+
+        {error && <p role="alert" className="bg-red-950 border border-red-500 rounded p-3 mb-4">{error}</p>}
+        {!workouts && !error && <p className="text-gray-400">Loading…</p>}
+        {workouts && visible.length === 0 && (
+          <p className="text-gray-400">
+            Nothing here yet. <Link to="/logworkout" className="underline text-red-200">Log a workout</Link>
+          </p>
+        )}
+
+        <ul className="space-y-3">
+          {visible.map((w) => (
+            <li key={w._id} className="bg-red-900 bg-opacity-20 border border-red-800 rounded-xl p-4">
+              {editing === w._id ? (
+                <WorkoutForm
+                  initial={{ ...w, date: toDateInput(w.date) }}
+                  submitLabel="Save changes"
+                  busy={busy}
+                  onSubmit={(data) => save(w._id, data)}
+                />
+              ) : (
+                <div className="flex justify-between gap-4">
+                  <div>
+                    <p className="font-semibold">{w.exercise}</p>
+                    <p className="text-sm text-gray-300">{w.sets} sets × {w.reps} reps @ {w.weight} kg</p>
+                    <p className="text-xs text-gray-400">{formatDate(w.date)}</p>
+                    {w.notes && <p className="text-sm text-gray-300 mt-1 italic">“{w.notes}”</p>}
+                  </div>
+                  <div className="flex flex-col items-end gap-2 text-sm flex-shrink-0">
+                    {confirming === w._id ? (
+                      <>
+                        <span className="text-red-200">Delete this workout?</span>
+                        <div className="flex gap-2">
+                          <button disabled={busy} onClick={() => remove(w._id)} className="bg-red-700 px-3 py-1 rounded">Yes, delete</button>
+                          <button onClick={() => setConfirming(null)} className="border border-gray-500 px-3 py-1 rounded">Cancel</button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button onClick={() => { setEditing(w._id); setConfirming(null); }} className="border border-white px-3 py-1 rounded hover:bg-white hover:text-black">Edit</button>
+                        <button onClick={() => setConfirming(w._id)} className="border border-red-500 text-red-300 px-3 py-1 rounded hover:bg-red-700 hover:text-white">Delete</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {editing === w._id && (
+                <button onClick={() => setEditing(null)} className="mt-2 text-sm underline text-gray-300">Cancel</button>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };

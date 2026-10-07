@@ -43,12 +43,12 @@ const Home = () => {
     <div className="absolute inset-0 bg-black opacity-50"></div>
     <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
       <h3 className="text-2xl sm:text-3xl font-semibold mb-2">Start Working Out</h3>
-      <a
-        href="/exercises"
+      <Link
+        to="/exercises"
         className="mt-4 px-6 py-2 bg-white text-red-800 font-semibold rounded-full hover:bg-gray-200 transition duration-300"
       >
         Choose an Exercise
-      </a>
+      </Link>
     </div>
   </div>
 

@@ -1,114 +1,108 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getToken, decodeToken } from '../services/authService';
-import { fetchWorkouts } from '../api/workoutApi';
+import { fetchStats, fetchWorkouts } from '../api/workoutApi';
+import { errorMessage } from '../api/axiosInstance';
+import { useAuth } from '../context/AuthContext';
+import WeeklyChart from '../components/WeeklyChart';
+import { formatDate, formatKg } from '../utils/exercises';
+
+const Card = ({ label, value, hint }) => (
+  <div className="bg-red-900 bg-opacity-30 border border-red-800 rounded-2xl p-5 text-center">
+    <p className="text-xs uppercase tracking-wider text-red-200">{label}</p>
+    <p className="text-3xl font-bold mt-1">{value}</p>
+    {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+  </div>
+);
 
 const Dashboard = () => {
-  const [workouts, setWorkouts] = useState([]);
-  const [stats, setStats] = useState({ totalWorkouts: 0, totalVolume: 0, maxWeight: 0 });
-  const [userId, setUserId] = useState(null);
+  const { user } = useAuth();
+  const [stats, setStats] = useState(null);
+  const [recent, setRecent] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const token = getToken();
-    if (token) {
-      try {
-        const decoded = decodeToken();
-        setUserId(decoded.userId);
-      } catch (err) {
-        console.error('Invalid token:', err);
-      }
-    }
+    let cancelled = false;
+    Promise.all([fetchStats(), fetchWorkouts()])
+      .then(([s, all]) => {
+        if (cancelled) return;
+        setStats(s);
+        setRecent(all.slice(0, 5));
+      })
+      .catch((err) => !cancelled && setError(errorMessage(err, 'Could not load your stats.')));
+    return () => { cancelled = true; };
   }, []);
 
-  useEffect(() => {
-    if (!userId) return;
-
-    const getWorkouts = async () => {
-      try {
-        const data = await fetchWorkouts(userId);
-        setWorkouts(data);
-
-        const totalVolume = data.reduce((acc, w) => acc + (w.reps * (w.weight || 0)), 0);
-        const maxWeight = Math.max(...data.map(w => w.weight || 0), 0);
-        const totalWorkouts = data.length;
-
-        setStats({ totalWorkouts, totalVolume, maxWeight });
-      } catch (err) {
-        console.error('Error fetching workouts:', err.message);
-      }
-    };
-
-    getWorkouts();
-  }, [userId]);
-
   return (
-    <div 
-      className="min-h-screen w-screen bg-cover bg-center relative" 
-      style={{
-        backgroundImage: "url('https://images.unsplash.com/photo-1570477368836-cfd3adba150c?q=80&w=1444&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
-      }}
-    >
-      <div className="absolute inset-0 bg-black opacity-50"></div>
-      <div className="relative z-10 text-white pt-20 px-4 max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center text-white">Welcome to Your Dashboard</h1>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-black bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
-            <h3 className="text-lg font-semibold mb-2">Total Workouts</h3>
-            <p className="text-2xl font-bold">{stats.totalWorkouts}</p>
+    <div className="min-h-screen w-full bg-black text-white pt-24 pb-12 px-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Hi, {user?.name?.split(' ')[0] || 'athlete'} 👋</h1>
+            <p className="text-gray-400">Here’s how your training is going.</p>
           </div>
+          <Link to="/logworkout" className="bg-red-700 hover:bg-red-600 px-5 py-2 rounded-full font-semibold text-center">
+            + Log a workout
+          </Link>
+        </div>
 
-          <div className="bg-black bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
-            <h3 className="text-lg font-semibold mb-2">Total Volume Lifted</h3>
-            <p className="text-2xl font-bold">{stats.totalVolume} kg</p>
+        {error && <p role="alert" className="bg-red-950 border border-red-500 rounded p-3 mb-6">{error}</p>}
+        {!stats && !error && <p className="text-gray-400">Loading your stats…</p>}
+
+        {stats && stats.totalWorkouts === 0 && (
+          <div className="border border-dashed border-red-800 rounded-2xl p-10 text-center">
+            <p className="text-xl font-semibold mb-2">No workouts yet</p>
+            <p className="text-gray-400 mb-4">Log your first session and your stats will show up here.</p>
+            <Link to="/logworkout" className="inline-block bg-red-700 px-5 py-2 rounded-full">Log your first workout</Link>
           </div>
+        )}
 
-          <div className="bg-black bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
-            <h3 className="text-lg font-semibold mb-2">Max Weight</h3>
-            <p className="text-2xl font-bold">{stats.maxWeight} kg</p>
-          </div>
+        {stats && stats.totalWorkouts > 0 && (
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card label="Workouts" value={stats.totalWorkouts} />
+              <Card label="Day streak" value={`${stats.streak} 🔥`} hint="consecutive days" />
+              <Card label="Total volume" value={formatKg(stats.totalVolume)} hint="reps × sets × weight" />
+              <Card label="Heaviest lift" value={formatKg(stats.maxWeight)} hint={stats.favouriteExercise && `Most logged: ${stats.favouriteExercise}`} />
+            </div>
 
-          <div className="bg-black bg-opacity-50 rounded-2xl shadow-lg p-6 border border-gray-300 text-center backdrop-blur-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:rotate-3d">
-            <h3 className="text-lg font-semibold mb-2">Recent Workouts</h3>
-            {workouts.length === 0 ? (
-              <p>No recent data</p>
-            ) : (
-              <ul className="text-sm">
-                {workouts.slice(0, 3).map((workout) => (
-                  <li key={workout._id} className="mb-2 border-b pb-2">
-                    <p className="font-medium">{workout.exercise}</p>
-                    <p>{workout.reps} reps @ {workout.weight || 0} kg</p>
-                    <p className="text-gray-500 text-xs">{new Date(workout.date).toLocaleDateString()}</p>
+            <div className="grid lg:grid-cols-3 gap-6 mt-6">
+              <section className="lg:col-span-2 bg-red-900 bg-opacity-20 border border-red-800 rounded-2xl p-5">
+                <h2 className="font-semibold mb-4">Weekly volume (kg)</h2>
+                <WeeklyChart weeks={stats.weekly} />
+              </section>
+
+              <section className="bg-red-900 bg-opacity-20 border border-red-800 rounded-2xl p-5">
+                <h2 className="font-semibold mb-4">Personal records</h2>
+                <ul className="space-y-3">
+                  {stats.records.map((r) => (
+                    <li key={r.exercise} className="flex justify-between text-sm">
+                      <span>
+                        {r.exercise}
+                        <span className="block text-xs text-gray-400">est. 1RM {r.estimated1RM} kg</span>
+                      </span>
+                      <span className="font-semibold">{r.weight} kg × {r.reps}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+
+            <section className="mt-6 bg-red-900 bg-opacity-20 border border-red-800 rounded-2xl p-5">
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="font-semibold">Recent workouts</h2>
+                <Link to="/editworkout" className="text-sm underline text-red-200">See all</Link>
+              </div>
+              <ul className="divide-y divide-red-900">
+                {recent.map((w) => (
+                  <li key={w._id} className="py-2 flex justify-between text-sm">
+                    <span>{w.exercise} <span className="text-gray-400">· {w.sets}×{w.reps} @ {w.weight} kg</span></span>
+                    <span className="text-gray-400">{formatDate(w.date)}</span>
                   </li>
                 ))}
               </ul>
-            )}
-            <Link
-              to="/editworkout"
-              className="mt-4 inline-block bg-red-800 text-white py-1 px-3 rounded-lg hover:bg-red-900"
-            >
-              See All Logs
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-10">
-          <h2 className="text-xl font-semibold mb-4 text-center text-white">Track Workouts</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-white text-center">
-            <Link
-              to="/logworkout"
-              className="bg-red-800 py-2 rounded-xl hover:bg-red-900"
-            >
-              Log New Workout
-            </Link>
-            <Link
-              to="/editworkout"
-              className="bg-red-800 py-2 rounded-xl hover:bg-red-900"
-            >
-              Edit Past Workouts
-            </Link>
-          </div>
-        </div>
+            </section>
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,37 +1,11 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes.js';
-import workoutRoutes from './routes/workoutRoutes.js';
-import cors from 'cors';
+import app from './app.js';
+import { env } from './config/env.js';
+import { connectDB } from './config/db.js';
 
-dotenv.config();
+if (!env.jwtSecret || env.jwtSecret.length < 32) {
+  console.error('JWT_SECRET must be set and at least 32 characters long.');
+  process.exit(1);
+}
 
-const app = express();
-const PORT = process.env.PORT || 5002;
-const MONGO_URI = process.env.MONGO_URI;
-
-app.use(express.json());
-
-app.use(cors({ origin:"https://fitness-tracker-app-1-6eco.onrender.com" }));
-
-app.use('/api/auth', authRoutes);
-app.use('/api/workouts', workoutRoutes);
-
-app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the backend Page!' });
-});
-
-
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log('✅ MongoDB connected');
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
-  });
-
+app.listen(env.port, () => console.log(`Server running on port ${env.port}`));
+connectDB().then(() => console.log('MongoDB connected')).catch((e) => console.error('MongoDB error:', e.message));

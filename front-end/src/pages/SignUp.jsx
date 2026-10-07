@@ -1,124 +1,65 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { decodeToken } from "../services/authService";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import AuthCard, { Field, PrimaryButton } from '../components/AuthCard';
+import GoogleButton from '../components/GoogleButton';
+import { useAuth } from '../context/AuthContext';
+import { errorMessage } from '../api/axiosInstance';
+import { GOOGLE_ENABLED } from './Login';
 
 const SignUp = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(true);
+  const { signUp, loginWithGoogle, isAuthenticated } = useAuth();
+  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      setError("Passwords do not match!");
-      return;
-    }
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const run = async (fn) => {
+    setBusy(true);
+    setError('');
     try {
-      setError("");
-      const res = await axios.post("https://fitness-tracker-app-iuw4.onrender.com/api/auth/signup", {
-        name,
-        email,
-        password,
-      });
-
-      const { token } = res.data;
-      localStorage.setItem("token", token);
-
-      const decodedUser = decodeToken();
-      console.log("Signed up user:", decodedUser);
-
-      alert("User signed up successfully!");
-
-      navigate("/");
-
-      setIsModalOpen(false);
-    } catch (error) {
-      console.error("Error during sign up:", error);
-      setError("An error occurred while signing up.");
+      await fn();
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError(errorMessage(err, 'Could not create your account.'));
+      setBusy(false);
     }
   };
 
-  const handleChange = (e) => {
-    if (e.target.name === "name") setName(e.target.value);
-    else if (e.target.name === "email") setEmail(e.target.value);
-    else if (e.target.name === "password") setPassword(e.target.value);
-    else if (e.target.name === "confirmPassword") setConfirmPassword(e.target.value);
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (!form.name.trim()) return setError('Please enter your name.');
+    if (form.password.length < 8) return setError('Password must be at least 8 characters.');
+    if (form.password !== form.confirm) return setError('Passwords do not match.');
+    run(() => signUp({ name: form.name.trim(), email: form.email, password: form.password }));
   };
 
   return (
-    <div>
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-cover bg-center flex justify-center items-center"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1667781838690-5f32ea0ccea6?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
-          }}
-        >
-          <div className="absolute inset-0 bg-black/60 z-0" />
-          <div className="backdrop-blur bg-black opacity-80 p-8 rounded-2xl max-w-sm w-[70%] sm:w-[50%] hover:text-center border border-red-800 text-white shadow-2xl">
-            <h2 className="text-2xl mb-4 font-semibold">Sign Up</h2>
-            {error && <p className="text-red-300 mb-4">{error}</p>}
-            <form onSubmit={handleSubmit}>
-              <input
-                type="text"
-                name="name"
-                value={name}
-                onChange={handleChange}
-                placeholder="Full Name"
-                className="w-full p-2 mb-4 border border-white bg-transparent text-white placeholder-white rounded"
-                required
-              />
-              <input
-                type="email"
-                name="email"
-                value={email}
-                onChange={handleChange}
-                placeholder="Email"
-                className="w-full p-2 mb-4 border border-white bg-transparent text-white placeholder-white rounded"
-                required
-              />
-              <input
-                type="password"
-                name="password"
-                value={password}
-                onChange={handleChange}
-                placeholder="Password"
-                className="w-full p-2 mb-4 border border-white bg-transparent text-white placeholder-white rounded"
-                required
-              />
-              <input
-                type="password"
-                name="confirmPassword"
-                value={confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm Password"
-                className="w-full p-2 mb-4 border border-white bg-transparent text-white placeholder-white rounded"
-                required
-              />
-              <button
-                type="submit"
-                className="w-full bg-red-800 hover:bg-red-900 text-white py-2 rounded font-semibold"
-              >
-                Sign Up
-              </button>
-            </form>
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="mt-4 text-white hover:underline ml-36"
-            >
-              Close
-            </button>
+    <AuthCard
+      title="Create your account"
+      subtitle="Start tracking every rep"
+      error={error}
+      footer={<>Already have an account? <Link to="/login" className="underline font-semibold">Log in</Link></>}
+    >
+      <form onSubmit={onSubmit} noValidate>
+        <Field id="name" label="Full name" autoComplete="name" value={form.name} onChange={onChange} />
+        <Field id="email" label="Email" type="email" autoComplete="email" value={form.email} onChange={onChange} />
+        <Field id="password" label="Password (8+ characters)" type="password" autoComplete="new-password" value={form.password} onChange={onChange} />
+        <Field id="confirm" label="Confirm password" type="password" autoComplete="new-password" value={form.confirm} onChange={onChange} />
+        <PrimaryButton type="submit" loading={busy}>Sign up</PrimaryButton>
+      </form>
+      {GOOGLE_ENABLED && (
+        <>
+          <div className="flex items-center my-5 text-xs text-red-200">
+            <span className="flex-1 border-t border-red-800" /><span className="px-3">or</span><span className="flex-1 border-t border-red-800" />
           </div>
-        </div>
+          <GoogleButton onCredential={(c) => run(() => loginWithGoogle(c))} onError={setError} />
+        </>
       )}
-    </div>
+    </AuthCard>
   );
 };
 

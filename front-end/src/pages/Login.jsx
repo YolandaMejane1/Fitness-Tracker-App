@@ -1,98 +1,64 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../api/axiosInstance'; 
-import { decodeToken } from '../services/authService'; 
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import AuthCard, { Field, PrimaryButton } from '../components/AuthCard';
+import GoogleButton from '../components/GoogleButton';
+import { useAuth } from '../context/AuthContext';
+import { errorMessage } from '../api/axiosInstance';
+
+export const GOOGLE_ENABLED = !!process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { login, loginWithGoogle, isAuthenticated } = useAuth();
+  const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const dest = location.state?.from || '/dashboard';
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  if (isAuthenticated) return <Navigate to={dest} replace />;
 
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const run = async (fn) => {
+    setBusy(true);
+    setError('');
     try {
-      if (email && password) {
-        const response = await axiosInstance.post('/auth/login', {
-          email,
-          password,
-        });
-
-        const { token } = response.data;
-        localStorage.setItem('token', token);
-
-        const decodedUser = decodeToken();
-        if (decodedUser) {
-          navigate('/');
-        } else {
-          setError('Invalid token');
-        }
-      } else {
-        setError('Please provide both email and password.');
-      }
+      await fn();
+      navigate(dest, { replace: true });
     } catch (err) {
-      setError(err.response ? err.response.data.message : err.message);
+      setError(errorMessage(err, 'Could not sign you in.'));
+      setBusy(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
-    try {
-      const response = await axiosInstance.post('/auth/google', {});
-      const { token } = response.data;
-      localStorage.setItem('token', token);
-
-      const decodedUser = decodeToken();
-      if (decodedUser) {
-        navigate('/');
-      } else {
-        setError('Invalid token');
-      }
-    } catch (err) {
-      setError(err.response ? err.response.data.message : err.message);
-    }
+  const onSubmit = (e) => {
+    e.preventDefault();
+    if (!form.email || !form.password) return setError('Enter your email and password.');
+    run(() => login(form));
   };
 
   return (
-    <div className="min-h-screen w-screen bg-black flex items-center justify-center relative">
-      <div className="absolute inset-0 bg-black opacity-90"></div>
-
-      <div className="bg-red-800 p-8 rounded-xl shadow-2xl w-full max-w-md z-10 text-white">
-        <h2 className="text-2xl font-bold mb-4 text-center">Login</h2>
-        {error && <p className="text-red-300 mb-4 text-center">{error}</p>}
-        <form onSubmit={handleLogin}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-3 mb-2 bg-white text-black rounded focus:outline-none focus:ring-2 focus:ring-red-800"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 mb-4 bg-white text-black rounded focus:outline-none focus:ring-2 focus:ring-red-800"
-          />
-          <button
-            type="submit"
-            className="w-full p-3 bg-red-900 text-white rounded hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-900"
-          >
-            Login
-          </button>
-        </form>
-
-        <div className="mt-4">
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full p-3 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
-          >
-            Login with Google
-          </button>
-        </div>
-      </div>
-    </div>
+    <AuthCard
+      title="Welcome back"
+      subtitle="Log in to see your progress"
+      error={error}
+      footer={<>New here? <Link to="/signup" className="underline font-semibold">Create an account</Link></>}
+    >
+      <form onSubmit={onSubmit} noValidate>
+        <Field id="email" label="Email" type="email" autoComplete="email" value={form.email} onChange={onChange} />
+        <Field id="password" label="Password" type="password" autoComplete="current-password" value={form.password} onChange={onChange} />
+        <PrimaryButton type="submit" loading={busy}>Log in</PrimaryButton>
+      </form>
+      {GOOGLE_ENABLED && (
+        <>
+          <div className="flex items-center my-5 text-xs text-red-200">
+            <span className="flex-1 border-t border-red-800" /><span className="px-3">or</span><span className="flex-1 border-t border-red-800" />
+          </div>
+          <GoogleButton onCredential={(c) => run(() => loginWithGoogle(c))} onError={setError} />
+        </>
+      )}
+    </AuthCard>
   );
 };
 

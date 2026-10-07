@@ -1,4 +1,7 @@
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import SignUp from './pages/SignUp';
@@ -9,24 +12,33 @@ import EditWorkout from './pages/EditWorkout';
 import Exercises from './pages/Exercises';
 import './App.css';
 
-const App = () => {
-  return (
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+
+const Shell = () => (
+  <AuthProvider>
     <Router>
       <Navbar />
-      <div className="w-screen h-screen">
-        <Routes>
-          <Route path="/" element={<Home />} /> 
-          <Route path="/home" element={<Home />} /> 
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/logworkout" element={<LogWorkout />} />
-          <Route path="/dashboard" element={<Dashboard />} /> 
-          <Route path="/editworkout" element={<EditWorkout />} />
-          <Route path="/exercises" element={<Exercises />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/exercises" element={<Exercises />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/logworkout" element={<ProtectedRoute><LogWorkout /></ProtectedRoute>} />
+        <Route path="/editworkout" element={<ProtectedRoute><EditWorkout /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
     </Router>
+  </AuthProvider>
+);
+
+// The Google provider is only mounted when a client ID is configured.
+const App = () =>
+  GOOGLE_CLIENT_ID ? (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}><Shell /></GoogleOAuthProvider>
+  ) : (
+    <Shell />
   );
-};
 
 export default App;
